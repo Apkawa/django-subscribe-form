@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+{{ script_code|safe }}
+
+<form action="." method="post" class="subscribe-form">
+    <div class="mui-textfield">
+        <input type="text" placeholder="ФИО" name="full_name" required value="Ерохин">
+    </div>
+    <div class="mui-textfield">
+        <input type="text" placeholder="Год рождения" required value="1666">
+    </div>
+    <div class="mui-select">
+        <select id="country" required>
+            <option selected>Россия</option>
+            <option>Кения</option>
+            <option>Уганда</option>
+        </select>
+        <label for="country">Страна проживания</label>
+    </div>
+    <div class="mui-textfield">
+        <input type="email" placeholder="Электронный адрес" name="email" required value="example@example.com">
+    </div>
+    <div class="mui-textfield">
+        <input type="tel"
+               placeholder="Номер мобильного телефона"
+               name="phone"
+               class="phone"
+               value="+79997776661"
+               required>
+    </div>
+    <div>
+
+
+        <label> Profile
+            <input id="profile" type="file" name="profile" accept="image/*"/>
+        </label>
+    </div>
+
+    <div>
+        <label for="multi_file">Photos</label>
+        <input id="multi_file" type="file" name="photos" multiple="multiple" accept="image/*"/>
+    </div>
+    <button type="submit" class="send mui-btn mui-btn--raised">Отправить
+    </button>
+</form>
+</body>
+</html>

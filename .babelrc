@@ -1,0 +1,19 @@
+{
+  "presets": [
+    [
+      "es2015",
+      {
+        "modules": "commonjs"
+      }
+    ],
+    "react"
+  ],
+  "plugins": [
+    "transform-export-extensions",
+    "transform-class-properties",
+    "transform-object-rest-spread",
+    "transform-react-jsx",
+    "transform-react-constant-elements",
+    "transform-react-inline-elements"
+  ]
+}
