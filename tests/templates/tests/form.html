@@ -31,16 +31,58 @@
         <input type="text" placeholder="Год рождения" value="1666">
     </div>
     <div class="mui-select">
+        <label for="country">Страна проживания</label>
         <select id="country">
             <option value="">---</option>
             <option selected>Россия</option>
             <option>Кения</option>
             <option>Уганда</option>
         </select>
-        <label for="country">Страна проживания</label>
+    </div>
+    <div class="mui-select">
+        <label for="language">Владение языками</label>
+        <select id="language" multiple>
+            <option selected>Русский</option>
+            <option>Японский</option>
+            <option>Иврит</option>
+        </select>
     </div>
     <div class="mui-textfield">
         <input type="email" placeholder="Электронный адрес" name="email" required value="example@example.com">
+    </div>
+    <div>
+        <label><input type="radio" name="gender" value="Мужской" data-display-name="Пол"> Мужской</label>
+        <label><input type="radio" name="gender" value="Женский" data-display-name="Пол"> Женский</label>
+    </div>
+    <div>
+        Любимые напитки
+        <div>
+            <label>
+                <input type="checkbox"
+                       name="drink"
+                       data-display-name="Любимые напитки"
+                > Пиво
+            </label>
+            <label>
+                <input type="checkbox"
+                       name="drink"
+                       data-display-name="Любимые напитки"
+                > Сок
+            </label>
+            <label>
+                <input type="checkbox"
+                       name="drink"
+                       data-display-name="Любимые напитки"
+                > Водка
+            </label>
+        </div>
+    </div>
+    <div>
+        <label>
+            Ваш любимый цвет
+            <input type="color" name="color">
+        </label>
+
     </div>
     <div class="mui-textfield">
         <input type="tel"
@@ -55,9 +97,9 @@
         <label for="message">Сообщение</label>
         <textarea
                 placeholder="Оставьте сообщение"
-               id="message"
-               name="message"
-               required></textarea>
+                id="message"
+                name="message"
+        ></textarea>
     </div>
     <div>
         <label> Фото для документов
@@ -68,7 +110,9 @@
         <label for="multi_file">Прочие фото</label>
         <input id="multi_file" type="file" name="photos" multiple="multiple" accept="image/*"/>
     </div>
-    <button type="submit" class="send mui-btn mui-btn--raised">Отправить
+    <button type="submit"
+            class="send mui-btn mui-btn--raised"
+    >Отправить
     </button>
 </form>
 {{ script_code|safe }}
