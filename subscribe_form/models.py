@@ -9,6 +9,8 @@ from django.db import models
 from django.db.transaction import atomic
 from django.forms.utils import flatatt
 from django.templatetags.static import static
+from django.core.files.storage import get_valid_filename
+
 from django.utils.html import format_html, conditional_escape
 from django.utils.translation import ugettext_lazy as _
 from jsonfield import JSONField
@@ -126,7 +128,7 @@ class Subscription(models.Model):
             if f.get('is_file'):
                 continue
             escaped_fields = {
-                conditional_escape(k): conditional_escape(v)
+                conditional_escape(k): conditional_escape(v) if v is None else v
                 for k, v in f.items()
             }
             fields.append(
@@ -155,6 +157,12 @@ class Subscription(models.Model):
             priority = PRIORITY.now
         emails = []
         for email_template in form.get_email_templates():
+            to = email_template.to
+            if email_template.is_reply_to_sender:
+                to = [self.email]
+            if not to:
+                continue
+
             template_attachments = list(email_template.attachments.all())
 
             if email_template.do_forward_attachments:
@@ -166,7 +174,7 @@ class Subscription(models.Model):
                     attachments[a.get_filename()] = a.file
 
             email = mail.send(
-                recipients=email_template.to,
+                recipients=to,
                 sender=email_template.from_email or None,
                 bcc=email_template.bcc,
                 cc=email_template.cc,
@@ -195,5 +203,9 @@ class SubscriptionAttachment(models.Model):
 
     def get_filename(self):
         name = os.path.split(os.path.splitext(self.filename)[0])[1]
+        name = '{display_name}_{name}'.format(
+            name=name,
+            display_name=self.display_name
+        )
         ext = os.path.splitext(self.file.name)[1]
-        return name + ext
+        return get_valid_filename(name + ext)

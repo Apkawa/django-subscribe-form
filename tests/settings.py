@@ -57,3 +57,8 @@ SECRET_KEY = 'easy'
 ROOT_URLCONF = 'urls'
 
 
+
+try:
+    from local_settings import *
+except ImportError:
+    pass
