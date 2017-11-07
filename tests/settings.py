@@ -6,6 +6,7 @@ SITE_ID = 1
 TEST_ROOT = os.path.normcase(os.path.dirname(os.path.abspath(__file__)))
 FIXTURES_ROOT = os.path.join(TEST_ROOT, 'fixtures')
 
+SITE_URL = 'http://127.0.0.1:9000'
 
 MEDIA_ROOT = os.path.join(os.path.normcase(os.path.dirname(TEST_ROOT)), 'media')
 MEDIA_URL = '/media/'
@@ -33,9 +34,11 @@ INSTALLED_APPS = [
     'django.contrib.auth',
     'django.contrib.admin',
 
+
     'post_office',
     'subscribe_form',
     'tests',
+    'django_extensions',
 ]
 
 MIDDLEWARE_CLASSES = (

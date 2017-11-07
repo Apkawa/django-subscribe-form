@@ -3,19 +3,36 @@
 <head>
     <meta charset="UTF-8">
     <title>Title</title>
+    <script
+            src="https://code.jquery.com/jquery-3.2.1.min.js"
+            integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
+            crossorigin="anonymous"></script>
 </head>
 <body>
-{{ script_code|safe }}
+
+<div class="error" style="display: none; color: red;">
+    <h1>
+        Error!
+    </h1>
+</div>
+<div class="sending" style="display: none">
+    Sending...
+</div>
+
+<div class="success" style="display: none; color: green">
+    Success!
+</div>
 
 <form action="." method="post" class="subscribe-form">
     <div class="mui-textfield">
         <input type="text" placeholder="ФИО" name="full_name" required value="Ерохин">
     </div>
     <div class="mui-textfield">
-        <input type="text" placeholder="Год рождения" required value="1666">
+        <input type="text" placeholder="Год рождения" value="1666">
     </div>
     <div class="mui-select">
-        <select id="country" required>
+        <select id="country">
+            <option value="">---</option>
             <option selected>Россия</option>
             <option>Кения</option>
             <option>Уганда</option>
@@ -33,20 +50,54 @@
                value="+79997776661"
                required>
     </div>
+
+    <div class="mui-textfield">
+        <label for="message">Сообщение</label>
+        <textarea
+                placeholder="Оставьте сообщение"
+               id="message"
+               name="message"
+               required></textarea>
+    </div>
     <div>
-
-
-        <label> Profile
+        <label> Фото для документов
             <input id="profile" type="file" name="profile" accept="image/*"/>
         </label>
     </div>
-
     <div>
-        <label for="multi_file">Photos</label>
+        <label for="multi_file">Прочие фото</label>
         <input id="multi_file" type="file" name="photos" multiple="multiple" accept="image/*"/>
     </div>
     <button type="submit" class="send mui-btn mui-btn--raised">Отправить
     </button>
 </form>
+{{ script_code|safe }}
+<script>
+  $(function () {
+    // Example use
+    var $error = $('.error')
+    var $sending = $('.sending')
+    var $success = $('.success')
+    $('.subscribe-form')
+      .on('submit', function (e) {
+        $sending.show()
+        $success.hide()
+        $error.hide()
+      })
+      .on('subscribe_form:success',
+        function (info) {
+          $sending.hide()
+          console.log(info)
+          $success.show()
+          $(this).hide()
+        })
+      .on('subscribe_form:error',
+        function (info) {
+          console.error(info)
+          $sending.hide()
+          $error.show()
+        })
+  })
+</script>
 </body>
 </html>

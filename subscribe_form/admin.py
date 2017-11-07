@@ -1,9 +1,43 @@
+from __future__ import unicode_literals
 from django.contrib import admin
 
 # Register your models here.
-from django.utils.html import format_html, escape
+from django.contrib.admin.utils import flatten_fieldsets
+from django.utils.html import format_html, escape, conditional_escape
 
-from .models import Form, FormEmailTemplate, EmailTemplate, EmailTemplateAttachment
+from .models import (
+    Form,
+    FormEmailTemplate,
+    EmailTemplate,
+    EmailTemplateAttachment,
+    Subscription,
+    SubscriptionAttachment
+)
+
+
+class ReadonlyAdminMixin(object):
+    def has_add_permission(self, request):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+    def get_readonly_fields(self, request, obj=None):
+        readonly_all = False
+        try:
+            readonly_all = self.readonly_fields[0] == '__all__'
+        except IndexError:
+            pass
+        if request.user.is_superuser and readonly_all:
+            return self.readonly_fields
+
+        if self.declared_fieldsets:
+            return flatten_fieldsets(self.declared_fieldsets)
+        else:
+            return list(set(
+                [field.name for field in self.opts.local_fields] +
+                [field.name for field in self.opts.local_many_to_many]
+            ))
 
 
 class SubscribeFormEmailTemplateInline(admin.TabularInline):
@@ -26,13 +60,7 @@ class SubscribeFormAdmin(admin.ModelAdmin):
     )
 
     def embedding_code(self, obj):
-        ctx = dict(
-            key=obj.key,
-            src='/static/subscribe_form/subscribe.js',
-        )
-        code = format_html('<script src="{src}" data-key="{key}"></script>', **ctx)
-
-        return format_html('<pre>{}</pre>', escape(code))
+        return escape(obj.get_embedding_code())
 
     embedding_code.allow_tags = True
 
@@ -45,3 +73,48 @@ class EmailTemplateAttachmentInline(admin.TabularInline):
 @admin.register(EmailTemplate)
 class EmailTemplateAdmin(admin.ModelAdmin):
     inlines = [EmailTemplateAttachmentInline]
+
+
+class SubscriptionAttachmentInline(ReadonlyAdminMixin, admin.TabularInline):
+    model = SubscriptionAttachment
+    extra = 0
+    can_delete = False
+    exclude = ['id']
+
+
+@admin.register(Subscription)
+class SubscriptionAdmin(ReadonlyAdminMixin, admin.ModelAdmin):
+    inlines = [SubscriptionAttachmentInline]
+    exclude = ['id']
+
+    list_display = ['host', 'email', 'render_fields', 'form']
+
+    fieldsets = (
+        (None, {'fields': [
+            'email',
+            'render_fields',
+        ]}),
+        ('Meta', {
+            'classes': ('collapse',),
+
+            'fields': [
+                'created',
+                'user_ip',
+                'host',
+                'referer',
+                'tag',
+                'form',
+            ],
+        })
+    )
+
+    def has_change_permission(self, request, obj=None):
+        return True
+
+    def render_fields(self, obj):
+        fields = obj.get_fields()
+        lines = [format_html(u"<strong>{display_name}</strong>: {value}", **f) for f in fields]
+        return u"</br>".join(lines)
+
+    render_fields.short_description = 'Fields'
+    render_fields.allow_tags = True

@@ -12,6 +12,7 @@ from django.views.generic.base import View
 from django.core.exceptions import PermissionDenied
 
 from .models import Form, Subscription, SubscriptionAttachment
+from .signals import subscribe_created
 
 API_KEY_HEADER = 'HTTP_API_KEY'
 
@@ -40,7 +41,8 @@ class SubscribeView(View):
         return super(SubscribeView, self).dispatch(request, *args, **kwargs)
 
     @atomic
-    def post(self, request, *args, **kwargs):
+    def do_create_subscription(self):
+        request = self.request
         subscribe_form = self.get_subscribe_form()
         try:
             fields = json.loads(request.POST['form_data'])
@@ -54,10 +56,15 @@ class SubscribeView(View):
         fields_map = {
             f['name'] or f['display_name']: f for f in fields
         }
+        try:
+            email = fields_map['email']['value']
+        except KeyError:
+            email = None
 
         subscription = Subscription(
             form=subscribe_form,
-            email=fields_map['email'],
+            email=email,
+            fields=fields,
             user_ip=user_ip,
             referer=referer,
             host=host,
@@ -68,7 +75,7 @@ class SubscribeView(View):
         for field_name in request.FILES.keys():
             display_name = field_name
             if field_name in fields_map:
-                display_name = fields_map.get('display_name') or field_name
+                display_name = fields_map[field_name].get('display_name') or field_name
             for upload_file in request.FILES.getlist(field_name):
                 subscription.attachments.create(
                     filename=os.path.split(upload_file.name)[1],
@@ -76,4 +83,9 @@ class SubscribeView(View):
                     name=field_name,
                     display_name=display_name
                 )
+        return subscription
+
+    def post(self, request, *args, **kwargs):
+        subscription = self.do_create_subscription()
+        subscribe_created.send_robust(sender=Subscription, instance=subscription, request=request)
         return HttpResponse(json.dumps({"status": "ok"}), status=201)

@@ -1,19 +1,23 @@
 # coding=utf-8
 from __future__ import unicode_literals
 
+import os
 import uuid
+from collections import OrderedDict
 
 from django.db import models
+from django.db.transaction import atomic
 from django.forms.utils import flatatt
 from django.templatetags.static import static
-from django.utils.html import format_html
+from django.utils.html import format_html, conditional_escape
 from django.utils.translation import ugettext_lazy as _
-
 from jsonfield import JSONField
+from post_office import mail
 from post_office.fields import CommaSeparatedEmailField
+from post_office.models import PRIORITY
 from post_office.validators import validate_email_with_name
 
-from .settings import API_ENDPOINT
+from .settings import get_api_endpoint
 
 
 class Form(models.Model):
@@ -32,12 +36,15 @@ class Form(models.Model):
     def __unicode__(self):
         return self.title
 
+    def get_email_templates(self):
+        return EmailTemplate.objects.filter(formemailtemplate__subscribe_form=self.pk).prefetch_related('attachments')
+
     def get_embedding_code(self, data_params=None):
         data_attrs = data_params or {}
         data_attrs.update(
             {
                 'key': self.key,
-                'endpoint': API_ENDPOINT
+                'endpoint': get_api_endpoint()
             }
         )
         attrs = {
@@ -68,9 +75,12 @@ class EmailTemplate(models.Model):
         verbose_name = 'Email template'
         verbose_name_plural = 'Email templates'
 
+    def __unicode__(self):
+        return self.title
+
 
 class EmailTemplateAttachment(models.Model):
-    email_template = models.ForeignKey(EmailTemplate)
+    email_template = models.ForeignKey(EmailTemplate, related_name='attachments')
     filename = models.CharField("File name", max_length=128)
     file = models.FileField(upload_to='subscribe_form/template/')
 
@@ -78,10 +88,19 @@ class EmailTemplateAttachment(models.Model):
         verbose_name = 'Email template attachment'
         verbose_name_plural = 'Email template attachments'
 
+    def get_filename(self):
+        name = os.path.split(os.path.splitext(self.filename)[0])[1]
+        ext = os.path.splitext(self.file.name)[1]
+        return name + ext
+
 
 class FormEmailTemplate(models.Model):
     subscribe_form = models.ForeignKey(Form)
     email_template = models.ForeignKey(EmailTemplate)
+
+    class Meta:
+        verbose_name = 'Form email template'
+        verbose_name_plural = 'Form email templates'
 
 
 class Subscription(models.Model):
@@ -101,6 +120,64 @@ class Subscription(models.Model):
         verbose_name = 'Subscription'
         verbose_name_plural = 'Subscriptions'
 
+    def get_fields(self):
+        fields = []
+        for f in self.fields:
+            if f.get('is_file'):
+                continue
+            escaped_fields = {
+                conditional_escape(k): conditional_escape(v)
+                for k, v in f.items()
+            }
+            fields.append(
+                escaped_fields
+            )
+        return fields
+
+    def get_context(self):
+        fields = OrderedDict([(f['name'], f) for f in self.get_fields()])
+
+        return dict(
+            fields=fields,
+            email=self.email,
+            host=self.host,
+            referer=self.referer,
+            tag=self.tag,
+            user_ip=self.user_ip
+        )
+
+    @atomic
+    def send_notification(self, now=False):
+        form = self.form
+        ctx = self.get_context()
+        priority = None
+        if now:
+            priority = PRIORITY.now
+        emails = []
+        for email_template in form.get_email_templates():
+            template_attachments = list(email_template.attachments.all())
+
+            if email_template.do_forward_attachments:
+                template_attachments += list(self.attachments.all())
+
+            attachments = {}
+            if template_attachments:
+                for a in template_attachments:
+                    attachments[a.get_filename()] = a.file
+
+            email = mail.send(
+                recipients=email_template.to,
+                sender=email_template.from_email or None,
+                bcc=email_template.bcc,
+                cc=email_template.cc,
+                template=email_template.email_template,
+                context=ctx,
+                priority=priority,
+                attachments=attachments or {}
+            )
+            emails.append(email)
+        return emails
+
 
 class SubscriptionAttachment(models.Model):
     subscribe = models.ForeignKey(Subscription, related_name='attachments')
@@ -112,3 +189,11 @@ class SubscriptionAttachment(models.Model):
     class Meta:
         verbose_name = 'Email template attachment'
         verbose_name_plural = 'Email template attachments'
+
+    def __unicode__(self):
+        return "{self.display_name} ({self.name}): {self.filename}".format(self=self)
+
+    def get_filename(self):
+        name = os.path.split(os.path.splitext(self.filename)[0])[1]
+        ext = os.path.splitext(self.file.name)[1]
+        return name + ext
