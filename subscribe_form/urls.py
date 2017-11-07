@@ -6,7 +6,7 @@ from django.conf.urls import url, include
 from . import views
 
 patterns = [
-    url(r'^__subscribe/', views.SubscribeView.as_view(), name='create')
+    url(r'^subscribe/', views.SubscribeView.as_view(), name='create')
 ]
 
 urlpatterns = [

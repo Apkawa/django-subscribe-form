@@ -14,6 +14,7 @@ from django.core.exceptions import PermissionDenied
 from .models import Form, Subscription, SubscriptionAttachment
 from .signals import subscribe_created
 
+from django.core.files.uploadhandler import MemoryFileUploadHandler
 API_KEY_HEADER = 'HTTP_API_KEY'
 
 
