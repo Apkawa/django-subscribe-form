@@ -50,12 +50,18 @@ class SubscribeView(View):
         except (IndexError, ValueError):
             return HttpResponseBadRequest('no form_data or json decode problem')
 
+        for f in fields:
+            f['name'] = f['name'] or f['display_name']
+
+            f.setdefault('value', '')
+            f.setdefault('is_file', False)
+
         referer = (request.META.get('HTTP_REFERER') or '')[:180]
         host = urlparse(referer).hostname
         user_ip = request.META['REMOTE_ADDR']
 
         fields_map = {
-            f['name'] or f['display_name']: f for f in fields
+            f['name']: f for f in fields
         }
         try:
             email = fields_map['email']['value']

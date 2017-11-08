@@ -19,7 +19,7 @@ from post_office.fields import CommaSeparatedEmailField
 from post_office.models import PRIORITY
 from post_office.validators import validate_email_with_name
 
-from .settings import get_api_endpoint
+from .settings import get_api_endpoint, get_script
 
 
 class Form(models.Model):
@@ -41,6 +41,8 @@ class Form(models.Model):
     def get_email_templates(self):
         return EmailTemplate.objects.filter(formemailtemplate__subscribe_form=self.pk).prefetch_related('attachments')
 
+
+
     def get_embedding_code(self, data_params=None):
         data_attrs = data_params or {}
         data_attrs.update(
@@ -50,7 +52,7 @@ class Form(models.Model):
             }
         )
         attrs = {
-            'src': static('subscribe_form/js/subscribe.js'),
+            'src': get_script(),
         }
         attrs.update({'data-' + k: v for k, v in data_attrs.items()})
         code = format_html('<script{attrs}></script>', attrs=flatatt(attrs))

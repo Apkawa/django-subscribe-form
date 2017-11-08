@@ -7,3 +7,4 @@ pypandoc
 # Dev helpers
 django-extensions
 ipython
+django-cors-headers

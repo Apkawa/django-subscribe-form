@@ -14,9 +14,7 @@ MEDIA_URL = '/media/'
 STATIC_ROOT = os.path.join(os.path.normcase(os.path.dirname(TEST_ROOT)), 'static')
 STATIC_URL = '/static/'
 
-
 DATABASE_ENGINE = 'sqlite3'
-
 
 DATABASES = {
     'default': {
@@ -34,15 +32,16 @@ INSTALLED_APPS = [
     'django.contrib.auth',
     'django.contrib.admin',
 
-
     'post_office',
     'subscribe_form',
     'tests',
     'django_extensions',
+    'corsheaders',
 ]
 
 MIDDLEWARE_CLASSES = (
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
@@ -56,6 +55,13 @@ SECRET_KEY = 'easy'
 
 ROOT_URLCONF = 'urls'
 
+CORS_ORIGIN_ALLOW_ALL = True
+CORS_ALLOW_CREDENTIALS = True
+from corsheaders.defaults import default_headers
+
+CORS_ALLOW_HEADERS = default_headers + (
+    'api-key',
+)
 
 try:
     from local_settings import *

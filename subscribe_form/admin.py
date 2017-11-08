@@ -1,4 +1,6 @@
 from __future__ import unicode_literals
+
+import six
 from django.contrib import admin
 
 # Register your models here.
@@ -113,7 +115,16 @@ class SubscriptionAdmin(ReadonlyAdminMixin, admin.ModelAdmin):
 
     def render_fields(self, obj):
         fields = obj.get_fields()
-        lines = [format_html(u"<strong>{display_name}</strong>: {value}", **f) for f in fields]
+        lines = []
+        for f in fields:
+            value = f.get('value') or ''
+            if not isinstance(value, list):
+                value = [value]
+            line = format_html(u"<strong>{display_name}</strong>: {value}",
+                display_name=f['display_name'],
+                value=', '.join(map(six.text_type, value)))
+            lines.append(line)
+
         return u"</br>".join(lines)
 
     render_fields.short_description = 'Fields'
