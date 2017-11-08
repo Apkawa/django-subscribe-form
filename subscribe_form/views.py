@@ -1,5 +1,6 @@
 import json
-from urlparse import urlparse
+
+from .compat import urlparse
 
 import os
 from django.db.transaction import atomic
@@ -15,6 +16,7 @@ from .models import Form, Subscription, SubscriptionAttachment
 from .signals import subscribe_created
 
 from django.core.files.uploadhandler import MemoryFileUploadHandler
+
 API_KEY_HEADER = 'HTTP_API_KEY'
 
 
@@ -57,7 +59,7 @@ class SubscribeView(View):
             f.setdefault('is_file', False)
 
         referer = (request.META.get('HTTP_REFERER') or '')[:180]
-        host = urlparse(referer).hostname
+        host = urlparse.urlparse(referer).hostname
         user_ip = request.META['REMOTE_ADDR']
 
         fields_map = {

@@ -5,20 +5,18 @@ import os
 import uuid
 from collections import OrderedDict
 
+from django.core.files.storage import get_valid_filename
 from django.db import models
 from django.db.transaction import atomic
 from django.forms.utils import flatatt
-from django.templatetags.static import static
-from django.core.files.storage import get_valid_filename
-
 from django.utils.html import format_html, conditional_escape
 from django.utils.translation import ugettext_lazy as _
 from jsonfield import JSONField
 from post_office import mail
-from post_office.fields import CommaSeparatedEmailField
 from post_office.models import PRIORITY
 from post_office.validators import validate_email_with_name
 
+from ._db_fields import CommaSeparatedEmailField
 from .settings import get_api_endpoint, get_script
 
 
@@ -40,8 +38,6 @@ class Form(models.Model):
 
     def get_email_templates(self):
         return EmailTemplate.objects.filter(formemailtemplate__subscribe_form=self.pk).prefetch_related('attachments')
-
-
 
     def get_embedding_code(self, data_params=None):
         data_attrs = data_params or {}
