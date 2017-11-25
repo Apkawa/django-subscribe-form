@@ -121,7 +121,7 @@ class SubscriptionAdmin(ReadonlyAdminMixin, admin.ModelAdmin):
             if not isinstance(value, list):
                 value = [value]
             line = format_html(u"<strong>{display_name}</strong>: {value}",
-                display_name=f['display_name'],
+                display_name=f.get('display_name') or f['name'],
                 value=', '.join(map(six.text_type, value)))
             lines.append(line)
 
