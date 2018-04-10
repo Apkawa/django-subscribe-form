@@ -6,6 +6,7 @@ from setuptools import setup, find_packages
 __doc__ = """App for Django featuring improved form base classes."""
 
 project_name = 'django-subscribe-form'
+app_name = 'subscribe_form'
 
 version = '0.0.5'
 
@@ -15,22 +16,24 @@ ROOT = os.path.dirname(__file__)
 def read(fname):
     return open(os.path.join(ROOT, fname)).read()
 
+
 try:
     import pypandoc
+
     long_description = pypandoc.convert('README.md', 'rst')
 except ImportError:
     long_description = read('README.md')
 
-
+packages = [package for package in find_packages() if package.startswith(app_name)]
 setup(
     name=project_name,
     version=version,
     description=__doc__,
     long_description=long_description,
-    url="https://github.com/Apkawa/django-multitype-file-field",
+    url="https://github.com/Apkawa/django-subscribe-form",
     author="Apkawa",
     author_email='apkawa@gmail.com',
-    packages=[package for package in find_packages() if package.startswith(project_name)],
+    packages=packages,
     install_requires=['six'],
     zip_safe=False,
     include_package_data=True,

@@ -1,2 +1,4 @@
 six
 jsonfield
+django-cors-headers
+django-post-office

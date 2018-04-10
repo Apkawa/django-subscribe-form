@@ -5,6 +5,5 @@ django>=1.10,<2
 pypandoc
 
 # Dev helpers
-django-extensions
-ipython
 django-cors-headers
+ipython
