@@ -33,8 +33,9 @@ class ReadonlyAdminMixin(object):
         if request.user.is_superuser and readonly_all:
             return self.readonly_fields
 
-        if self.declared_fieldsets:
-            return flatten_fieldsets(self.declared_fieldsets)
+        # TODO compat self.declared_fieldsets
+        if self.fieldsets:
+            return flatten_fieldsets(self.fieldsets)
         else:
             return list(set(
                 [field.name for field in self.opts.local_fields] +
@@ -92,10 +93,12 @@ class SubscriptionAdmin(ReadonlyAdminMixin, admin.ModelAdmin):
     list_display = ['host', 'email', 'render_fields', 'form']
 
     fieldsets = (
-        (None, {'fields': [
-            'email',
-            'render_fields',
-        ]}),
+        (None, {
+            'fields': [
+                'email',
+                'render_fields',
+            ]
+        }),
         ('Meta', {
             'classes': ('collapse',),
 
@@ -120,9 +123,11 @@ class SubscriptionAdmin(ReadonlyAdminMixin, admin.ModelAdmin):
             value = f.get('value') or ''
             if not isinstance(value, list):
                 value = [value]
-            line = format_html(u"<strong>{display_name}</strong>: {value}",
-                display_name=f.get('display_name') or f['name'],
-                value=', '.join(map(six.text_type, value)))
+
+            line = format_html(u"<strong>{display_name} ({name})</strong>: {value}",
+                               display_name=f.get('display_name') or f['name'],
+                               name=f['name'],
+                               value=', '.join(map(six.text_type, value)))
             lines.append(line)
 
         return u"</br>".join(lines)

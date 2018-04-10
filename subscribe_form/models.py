@@ -33,18 +33,20 @@ class Form(models.Model):
         verbose_name = 'Form'
         verbose_name_plural = 'Forms'
 
-    def __unicode__(self):
+    def __str__(self):
         return self.title
 
     def get_email_templates(self):
-        return EmailTemplate.objects.filter(formemailtemplate__subscribe_form=self.pk).prefetch_related('attachments')
+        return EmailTemplate.objects.filter(
+            formemailtemplate__subscribe_form=self.pk).prefetch_related('attachments')
 
     def get_embedding_code(self, data_params=None):
         data_attrs = data_params or {}
         data_attrs.update(
             {
                 'key': self.key,
-                'endpoint': get_api_endpoint()
+                'endpoint': get_api_endpoint(),
+                'form': '.subscribe-form',
             }
         )
         attrs = {
@@ -59,8 +61,10 @@ class EmailTemplate(models.Model):
     title = models.CharField(max_length=254)
 
     from_email = models.CharField(_("Email From"), max_length=254,
-        validators=[validate_email_with_name],
-        blank=True)
+                                  validators=[validate_email_with_name],
+                                  blank=True,
+                                  help_text=_('If empty - use settings.DEFAULT_FROM_EMAIL')
+                                  )
 
     to = CommaSeparatedEmailField(_("Email To"))
     is_reply_to_sender = models.BooleanField(_("Is reply to sender"), default=False)
@@ -75,8 +79,8 @@ class EmailTemplate(models.Model):
         verbose_name = 'Email template'
         verbose_name_plural = 'Email templates'
 
-    def __unicode__(self):
-        return self.title
+    def __str__(self):
+        return f'{self.title}; to={self.to}'
 
 
 class EmailTemplateAttachment(models.Model):
@@ -113,7 +117,7 @@ class Subscription(models.Model):
     referer = models.URLField(null=True)
     host = models.CharField(max_length=50, null=True)
     tag = models.CharField(max_length=128, blank=True, null=True)
-    user_ip = models.IPAddressField(null=True)
+    user_ip = models.GenericIPAddressField(null=True)
     created = models.DateTimeField(auto_now_add=True, blank=True, editable=False)
 
     class Meta:

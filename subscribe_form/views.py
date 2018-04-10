@@ -1,21 +1,16 @@
 import json
-
-from .compat import urlparse
-
 import os
+
+from django.core.exceptions import PermissionDenied
 from django.db.transaction import atomic
-from django.shortcuts import render
 from django.http import HttpResponseBadRequest, HttpResponse
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
-
 from django.views.generic.base import View
-from django.core.exceptions import PermissionDenied
 
-from .models import Form, Subscription, SubscriptionAttachment
+from .compat import urlparse
+from .models import Form, Subscription
 from .signals import subscribe_created
-
-from django.core.files.uploadhandler import MemoryFileUploadHandler
 
 API_KEY_HEADER = 'HTTP_API_KEY'
 
@@ -28,7 +23,7 @@ class SubscribeView(View):
             self.request.GET.get('api_key'),
         ]
         try:
-            return filter(None, keys)[0]
+            return [k for k in keys if k][0]
         except IndexError:
             raise PermissionDenied('No api key')
 
