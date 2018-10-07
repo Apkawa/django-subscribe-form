@@ -80,7 +80,7 @@ class EmailTemplate(models.Model):
         verbose_name_plural = 'Email templates'
 
     def __str__(self):
-        return f'{self.title}; to={self.to}'
+        return '{self.title}; to={self.to}'.format(self=self)
 
 
 class EmailTemplateAttachment(models.Model):
