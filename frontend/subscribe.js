@@ -31,7 +31,9 @@ function getScriptConfig (defaults = {}) {
 function findInputLabel ($input_field) {
   const labels = [
     $(`label[for='${$input_field.attr('id')}']`),
-    $input_field.parents('label')
+    $input_field.parents('label'),
+    $input_field.attr('placeholder'),
+    $input_field.attr('name'),
   ]
 
   for (let label of labels) {
@@ -71,20 +73,20 @@ function getDisplayName ($input_field) {
 }
 
 function groupInputData (inputData) {
-  let inputDataMap = new Map()
-  for (let l of inputData) {
+  let inputDataMap = {}
+  inputData.map((i, l) => {
     const name = l.name || l.display_name
-    let g_l = inputDataMap.get(name)
+    let g_l = inputDataMap[name]
     if (!g_l) {
       g_l = {...l, value: []}
     }
     if (l.value) {
       g_l.value.push(l.value)
     }
-    inputDataMap.set(name, g_l)
-  }
+    inputDataMap['name'] = g_l
+  })
   const groupedData = []
-  for (let d of inputDataMap.values()) {
+  for (let d of Object.values(inputDataMap)) {
     if (d.value.length <= 1) {
       d.value = d.value[0]
     }
@@ -96,7 +98,7 @@ function groupInputData (inputData) {
 function collectDataForm (form) {
   const $form = $(form)
   const $inputs = $form.find('input, select, textarea')
-  const inputData = $inputs.map((field) => {
+  const inputData = $inputs.map((i, field) => {
     const $field = $(field)
     const is_file = $field.attr('type') === 'file'
     const value = getValue($field)
@@ -122,7 +124,7 @@ function onSubmitForm (e) {
   e.preventDefault()
   e.stopImmediatePropagation()
 
-  const $form = $(this)
+  const $form = $(e.target)
   const formData = collectDataForm($form)
   const formFiles = collectFiles($form)
   console.log(formData)
@@ -131,13 +133,12 @@ function onSubmitForm (e) {
     .post(CONFIG.endpoint)
     .set('API-Key', CONFIG.key)
     .set('Accept', 'application/json')
-    .withCredentials()
     .field({'form_data': JSON.stringify(formData)})
-  for (let [name, files] of formFiles) {
+  formFiles.map((i,[name, files]) => {
     for (let file of files) {
       request = request.attach(name, file)
     }
-  }
+  })
   request
     .then((response) => {
       $form.trigger('subscribe_form:success', {
@@ -161,5 +162,9 @@ function onSubmitForm (e) {
 
 $(() => {
   console.log(CONFIG)
-  $(CONFIG.form).on('submit', onSubmitForm)
+  document.addEventListener('submit', (e) => {
+    if (e.target === document.querySelector(CONFIG.form)) {
+      onSubmitForm(e)
+    }
+  })
 })

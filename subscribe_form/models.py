@@ -110,7 +110,7 @@ class FormEmailTemplate(models.Model):
 class Subscription(models.Model):
     form = models.ForeignKey(Form, related_name='subscriptions')
 
-    email = models.EmailField(blank=True)
+    email = models.EmailField(blank=True, null=True)
 
     fields = JSONField(default={})
 
