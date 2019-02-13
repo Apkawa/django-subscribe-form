@@ -5,6 +5,7 @@ module.exports = {
   mode: env || 'development',
   context: __dirname + '/frontend',
   entry: './subscribe.js',
+  devtool: env === 'production'? false:'inline-source-map',
   output: {
     path: __dirname + '/subscribe_form/static/subscribe_form/js/',
     filename: 'subscribe.js'

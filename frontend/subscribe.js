@@ -83,7 +83,7 @@ function groupInputData (inputData) {
     if (l.value) {
       g_l.value.push(l.value)
     }
-    inputDataMap['name'] = g_l
+    inputDataMap[name] = g_l
   })
   const groupedData = []
   for (let d of Object.values(inputDataMap)) {
@@ -134,6 +134,7 @@ function onSubmitForm (e) {
     .set('API-Key', CONFIG.key)
     .set('Accept', 'application/json')
     .field({'form_data': JSON.stringify(formData)})
+
   formFiles.map((i,[name, files]) => {
     for (let file of files) {
       request = request.attach(name, file)
