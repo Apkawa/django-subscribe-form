@@ -24,7 +24,7 @@ function getDataAttributes (el) {
 }
 
 function getScriptConfig (defaults = {}) {
-  return {...defaults, ...getDataAttributes(currentScript)}
+  return { ...defaults, ...getDataAttributes(currentScript) }
 
 }
 
@@ -78,7 +78,7 @@ function groupInputData (inputData) {
     const name = l.name || l.display_name
     let g_l = inputDataMap[name]
     if (!g_l) {
-      g_l = {...l, value: []}
+      g_l = { ...l, value: [] }
     }
     if (l.value) {
       g_l.value.push(l.value)
@@ -104,7 +104,7 @@ function collectDataForm (form) {
     const value = getValue($field)
     const name = $field.attr('name')
     const display_name = getDisplayName($field)
-    return {value, name, display_name, is_file}
+    return { value, name, display_name, is_file }
   })
   return groupInputData(inputData)
 }
@@ -129,43 +129,47 @@ function onSubmitForm (e) {
   const formFiles = collectFiles($form)
   console.log(formData)
 
-  let request = superagent
-    .post(CONFIG.endpoint)
-    .set('API-Key', CONFIG.key)
-    .set('Accept', 'application/json')
-    .field({'form_data': JSON.stringify(formData)})
+  let request = superagent.post(CONFIG.endpoint).
+    set('API-Key', CONFIG.key).
+    set('Accept', 'application/json').
+    field({ 'form_data': JSON.stringify(formData) })
 
-  formFiles.map((i,[name, files]) => {
+  formFiles.map((i, [name, files]) => {
     for (let file of files) {
       request = request.attach(name, file)
     }
   })
-  request
-    .then((response) => {
-      $form.trigger('subscribe_form:success', {
-        event: e,
-        data: formData,
-        files: formFiles,
-        response
-      })
+  request.then((response) => {
+    $form.trigger('subscribe_form:success', {
+      event: e,
+      data: formData,
+      files: formFiles,
+      response,
     })
-    .catch((error) => {
-      $form.trigger('subscribe_form:error', {
-        event: e,
-        data: formData,
-        files: formFiles,
-        error
-      })
+  }).catch((error) => {
+    $form.trigger('subscribe_form:error', {
+      event: e,
+      data: formData,
+      files: formFiles,
+      error,
     })
+  })
 
   return false
 }
 
+function bindEvent (selector, event, cb) {
+  document.addEventListener(event, function (e) {
+    if (e.target === document.querySelector(CONFIG.form)) {
+      cb.apply(this, arguments)
+    }
+  })
+}
+
 $(() => {
   console.log(CONFIG)
-  document.addEventListener('submit', (e) => {
-    if (e.target === document.querySelector(CONFIG.form)) {
-      onSubmitForm(e)
-    }
+  bindEvent(CONFIG.form, 'submit', onSubmitForm)
+  bindEvent(CONFIG.form, 'subscribe_form:success', (e) => {
+    e.target.reset()
   })
 })
