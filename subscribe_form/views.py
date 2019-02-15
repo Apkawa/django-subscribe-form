@@ -48,7 +48,7 @@ class SubscribeView(View):
             return HttpResponseBadRequest('no form_data or json decode problem')
 
         for f in fields:
-            f['name'] = f['name'] or f['display_name']
+            f['name'] = f.get('name') or f['display_name']
 
             f.setdefault('value', '')
             f.setdefault('is_file', False)

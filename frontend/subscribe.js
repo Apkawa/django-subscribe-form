@@ -38,10 +38,14 @@ function findInputLabel ($input_field) {
 
   for (let label of labels) {
     if (label && label.length > 0) {
-      return label
+      if (typeof label === "string") {
+        return label
+      } else {
+        return label[0].innerText.trim()
+      }
     }
   }
-  return []
+  return null
 }
 
 function getValue ($input_field) {
@@ -49,8 +53,8 @@ function getValue ($input_field) {
   if (type === 'checkbox' || type === 'radio') {
     if (!$input_field.attr('value')) {
       const label = findInputLabel($input_field)
-      if (label && label.length > 0) {
-        return label[0].innerText.trim()
+      if (label) {
+        return label
       }
     }
   }
@@ -59,10 +63,10 @@ function getValue ($input_field) {
 }
 
 function getDisplayName ($input_field) {
-  const $label = findInputLabel($input_field)
+  const label = findInputLabel($input_field)
   const displayNames = [
     $input_field.attr('data-display-name'),
-    $label.length > 0 ? $label[0].innerText.trim() : false,
+    label,
     $input_field.attr('placeholder'),
   ]
   for (let name of displayNames) {
