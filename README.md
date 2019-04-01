@@ -106,6 +106,28 @@ Referer: {{ referer }}
      </script>
 ```
 
+# API
+
+
+
+## Simple usage
+```
+curl -X POST //example.com/api/v1/subscribe/subscribe/ \
+    -H "Content-Type: multipart/form-data" \
+    -H 'API-Key: 4a96f68d-7acb-4f7f-8e43-63e8902bf08f' \
+    -H 'Accept: application/json' \
+    -F form_data='[{"value": "example@email.com", "display_name": "User email*", "name": "email", "is_file": false}]' 
+```
+
+## Send file
+```
+curl -X POST //example.com/api/v1/subscribe/subscribe/ \
+    -H "Content-Type: multipart/form-data" \
+    -H 'API-Key: 4a96f68d-7acb-4f7f-8e43-63e8902bf08f' \
+    -H 'Accept: application/json' \
+    -F form_data='[{"display_name": "User avatar*", "name": "avatar", "is_file": true}]'  \
+    -F "avatar=@/home/user/avatar.png"  \
+```
 
 
 

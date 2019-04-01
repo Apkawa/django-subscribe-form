@@ -90,7 +90,7 @@ class SubscriptionAdmin(ReadonlyAdminMixin, admin.ModelAdmin):
     inlines = [SubscriptionAttachmentInline]
     exclude = ['id']
 
-    list_display = ['host', 'email', 'render_fields', 'form']
+    list_display = ['created', 'host', 'email', 'render_fields', 'form']
 
     fieldsets = (
         (None, {
